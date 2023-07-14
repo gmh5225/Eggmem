@@ -9,23 +9,23 @@
 namespace eggmem {
 
 
-
     PPEB Memory::getPEB(HANDLE hProcess) {
         PROCESS_BASIC_INFORMATION pbi;
         ULONG returnLength;
         if (!NT_SUCCESS(winapi::NtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &returnLength))) {
-            throw std::runtime_error("NtQueryInformationProcess failed");
+            g_pUtil->eggError(__func__, "NtQueryInformationProcess failed");
         }
 
         PEB peb;
         SIZE_T bytesRead;
         if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, pbi.PebBaseAddress, &peb, sizeof(PEB), &bytesRead))) {
 
-            throw std::runtime_error("NtReadVirtualMemory failed");
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed");
         }
 
         return &peb;
     }
+
 
 
 
@@ -44,92 +44,35 @@ namespace eggmem {
 
 
 
-    // std::variant<std::vector<Module>, Module, bool> Memory::GetModule(HANDLE hProcess, std::optional<const char*> moduleName) {
-
-    //     Module module{};
-    //     std::vector<Module> modules{};
-    //     PROCESS_BASIC_INFORMATION pbi;
-    //     PPEB peb = getPEB(hProcess);
-    //     PPEB_LDR_DATA ldr = peb->Ldr;
-    //     ULONG returnLength;
-
-    //     if (!NT_SUCCESS(winapi::NtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), &returnLength))) {
-    //         g_pUtil->eggError("NtQueryInformationProcess failed");
-    //         return false;
-    //     }
-
-    //     LIST_ENTRY* head = ldr->InMemoryOrderModuleList.Flink;
-    //     LIST_ENTRY* current = head;
-
-    //     do {
-    //         winapistructs::LDR_DATA_TABLE_ENTRY moduleEntry;
-
-    //         if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, CONTAINING_RECORD(current, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &moduleEntry, sizeof(LDR_DATA_TABLE_ENTRY), nullptr))) {
-    //             g_pUtil->eggError("NtReadVirtualMemory failed");
-    //             return false;
-    //         }
-    //         WCHAR buffer[MAX_PATH] = { 0 };
-    //         if (NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, moduleEntry.BaseDllName.Buffer, buffer, moduleEntry.BaseDllName.Length, nullptr))) {
-    //             // Convert the wide string to a multi-byte string
-    //             char mbBuffer[MAX_PATH] = { 0 };
-    //             WideCharToMultiByte(CP_ACP, 0, buffer, -1, mbBuffer, sizeof(mbBuffer), NULL, NULL);
-
-    //             if (!moduleName) {
-    //                 Module tempModule{};
-    //                 tempModule.baseAddress = (uintptr_t)moduleEntry.DllBase;
-    //                 tempModule.entryPoint = (uintptr_t)moduleEntry.EntryPoint;
-    //                 tempModule.size = (size_t)moduleEntry.SizeOfImage;
-    //                 tempModule.moduleName = mbBuffer;
-    //                 modules.emplace_back(tempModule);
-    //             }
-    //             else {
-    //                 if (!_stricmp(mbBuffer, moduleName)) {
-    //                     module.baseAddress = (uintptr_t)moduleEntry.DllBase;
-    //                     module.entryPoint = (uintptr_t)moduleEntry.EntryPoint;
-    //                     module.size = (size_t)moduleEntry.SizeOfImage;
-    //                     module.moduleName = mbBuffer;
-    //                     return module;
-    //                 }   
-    //             }
-    //         }
-    //     
-    //     } while ((current = current->Flink) != head);
-    //     if (!moduleName) {
-             //return modules;
-    //     }
-    //     else {
-    //         return module;
-    //     }
-
-    // }
-
+ 
     std::variant<std::vector<Module>, Module, bool> Memory::GetModule(HANDLE hProcess, std::optional<std::wstring> moduleName) {
 
         Module module{};
         std::vector<Module> modules{};
         PROCESS_BASIC_INFORMATION pbi;
         PPEB peb = getPEB(hProcess);
-        PPEB_LDR_DATA ldr = peb->Ldr;
-        ULONG_PTR inMemoryOrderModuleListAddr = (ULONG_PTR)(peb->Ldr) + offsetof(PEB_LDR_DATA, InMemoryOrderModuleList);
+        
+        uintptr_t inMemoryOrderModuleListAddr = (uintptr_t)(peb->Ldr) + offsetof(PEB_LDR_DATA, InMemoryOrderModuleList);
 
         if (!NT_SUCCESS(winapi::NtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(PROCESS_BASIC_INFORMATION), nullptr))) {
             g_pUtil->eggError(__func__, "NtQueryInformationProcess failed");
             return false;
         }
 
-        winapi::LIST_ENTRY ModuleList{};
+        LIST_ENTRY ModuleList{};
         NTSTATUS ntret;
         if (!NT_SUCCESS(ntret = winapi::NtReadVirtualMemory(hProcess, (void*)inMemoryOrderModuleListAddr, &ModuleList, sizeof(LIST_ENTRY), nullptr))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory 1 failed");
             return false;
         }
 
-        winapi::LDR_DATA_TABLE_ENTRY currentModuleEntry{};
+        LDR_DATA_TABLE_ENTRY currentModuleEntry{};
 
-        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, CONTAINING_RECORD(ModuleList.Flink, winapi::LDR_DATA_TABLE_ENTRY, InLoadOrderLinks), &currentModuleEntry, sizeof(winapi::LDR_DATA_TABLE_ENTRY), nullptr))) {
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, CONTAINING_RECORD(ModuleList.Flink, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &currentModuleEntry, sizeof(LDR_DATA_TABLE_ENTRY), nullptr))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory 2 failed");
             return false;
         }
+
 
         do {
             USHORT length = (USHORT)currentModuleEntry.FullDllName.MaximumLength;
@@ -145,17 +88,31 @@ namespace eggmem {
                 return false;
             }
 
+            IMAGE_DOS_HEADER dosHeader;
+            if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)currentModuleEntry.DllBase, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr))) {
+                g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 1");
+            }
+            IMAGE_DOS_HEADER* pDosHeader = &dosHeader;
+            IMAGE_NT_HEADERS ntHeaders;
+            if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)((uintptr_t)currentModuleEntry.DllBase + pDosHeader->e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr))) {
+                g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
+            }
+            IMAGE_NT_HEADERS* pNtHeaders = &ntHeaders;
+
             std::wstring text(buffer, length / sizeof(WCHAR));
+            LDR_DATA_TABLE_ENTRY* currentModuleEntryBase = CONTAINING_RECORD(currentModuleEntry.InMemoryOrderLinks.Flink, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
+            uintptr_t entryPoint = reinterpret_cast<ptrdiff_t>(currentModuleEntryBase) + 0x38;
             Module tempModule{
                 .moduleName = text,
                 .baseAddress = (uintptr_t)currentModuleEntry.DllBase,
-                .entryPoint = (uintptr_t)currentModuleEntry.EntryPoint,
-                .size = (size_t)currentModuleEntry.SizeOfImage,
-                .loadCount = currentModuleEntry.LoadCount,
-                .flags = currentModuleEntry.Flags,
-                .sectionPointer = currentModuleEntry.SectionPointer,
+                .entryPoint = pNtHeaders->OptionalHeader.AddressOfEntryPoint,
+                .size = pNtHeaders->OptionalHeader.SizeOfImage,
+                
+                .flags = pNtHeaders->OptionalHeader.LoaderFlags,
+                
                 .checkSum = currentModuleEntry.CheckSum,
             };
+            /*std::cout << currentModuleEntry.Reserved1 << "\n" << currentModuleEntry.Reserved2 << "\n" << currentModuleEntry.Reserved3 << "\n" << currentModuleEntry.Reserved4<<"\n" ;*/
 
             if (moduleName.has_value()) {
                 std::wstring lowerModuleName(moduleName.value());
@@ -172,12 +129,12 @@ namespace eggmem {
             modules.emplace_back(tempModule);
             delete[] buffer;
 
-            if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, CONTAINING_RECORD(currentModuleEntry.InLoadOrderLinks.Flink, winapi::LDR_DATA_TABLE_ENTRY, InLoadOrderLinks), &currentModuleEntry, sizeof(winapi::LDR_DATA_TABLE_ENTRY), nullptr))) {
+            if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, CONTAINING_RECORD(currentModuleEntry.InMemoryOrderLinks.Flink, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks), &currentModuleEntry, sizeof(LDR_DATA_TABLE_ENTRY), nullptr))) {
                 g_pUtil->eggError(__func__, "NtReadVirtualMemory 3 failed");
                 return false;
             }
 
-        } while (currentModuleEntry.InLoadOrderLinks.Flink != ModuleList.Flink);
+        } while (currentModuleEntry.InMemoryOrderLinks.Flink != ModuleList.Flink);
         return modules;
     }
 
@@ -232,7 +189,7 @@ namespace eggmem {
     //    return exports;
     //}
 
-    std::variant<std::vector<ExportInfo>, ExportInfo> Memory::getExports(uintptr_t baseAddress, std::optional<std::string_view> moduleExportName) {
+    /*std::variant<std::vector<ExportInfo>, ExportInfo> Memory::getExports(uintptr_t baseAddress, std::optional<std::string_view> moduleExportName) {
 
         const IMAGE_DOS_HEADER* dosHeader = reinterpret_cast<const IMAGE_DOS_HEADER*>(baseAddress);
         const IMAGE_NT_HEADERS* ntHeaders = reinterpret_cast<const IMAGE_NT_HEADERS*>(baseAddress + dosHeader->e_lfanew);
@@ -274,6 +231,92 @@ namespace eggmem {
                 throw std::runtime_error("[GetExports] -> No exports found for DLL");
             }
         }
+        return exports;
+    }*/
+
+    std::variant<std::vector<ExportInfo>, ExportInfo> Memory::getExports(HANDLE hProcess, uintptr_t baseAddress, std::optional<const char*> moduleExportName) {
+            
+        IMAGE_DOS_HEADER dosHeader{};
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)baseAddress, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr))) {
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 1");
+        }
+        IMAGE_DOS_HEADER* pDosHeader = &dosHeader;
+        
+        IMAGE_NT_HEADERS ntHeaders{};
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pDosHeader->e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr))) {
+			g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
+		}
+        IMAGE_NT_HEADERS* pNtHeaders = &ntHeaders;
+
+       
+
+        IMAGE_DATA_DIRECTORY* pDataDirectory = &pNtHeaders->OptionalHeader.DataDirectory[0];
+
+        IMAGE_EXPORT_DIRECTORY exportDirectory{};
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pDataDirectory->VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr))) {
+			g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 4");
+		}
+        IMAGE_EXPORT_DIRECTORY* pExportDirectory = &exportDirectory;
+        
+        const ULONG_PTR NameTableAddr = baseAddress + pExportDirectory->AddressOfNames;
+        const ULONG_PTR RVATableAddr = baseAddress + pExportDirectory->AddressOfFunctions;
+        const ULONG_PTR OrdTableAddr = baseAddress + pExportDirectory->AddressOfNameOrdinals;
+
+        uint32_t* NameTable =new uint32_t[pExportDirectory->NumberOfNames];
+        uint32_t* RVATable = new uint32_t[pExportDirectory->NumberOfFunctions];
+        uint32_t* OrdTable = new uint32_t[pExportDirectory->NumberOfNames];
+
+        SIZE_T bytesRead;
+
+        
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)NameTableAddr, NameTable, sizeof(unsigned long) * pExportDirectory->NumberOfNames, &bytesRead))) {
+            delete[] NameTable;
+            delete[] RVATable;
+            delete[] OrdTable;
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
+        }
+
+        
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)RVATableAddr, RVATable, sizeof(unsigned long) * pExportDirectory->NumberOfFunctions, &bytesRead))) {
+            delete[] NameTable;
+            delete[] RVATable;
+            delete[] OrdTable;
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 3");
+        }
+
+        
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)OrdTableAddr, OrdTable, sizeof(unsigned short) * pExportDirectory->NumberOfNames, &bytesRead))) {
+            delete[] NameTable;
+            delete[] RVATable;
+            delete[] OrdTable;
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 4");
+        }
+
+        std::vector<ExportInfo> exports;
+        for (int i = 0; i < pExportDirectory->NumberOfNames; i++) {
+            
+            uint32_t* names = new uint32_t[pExportDirectory->NumberOfNames];
+            winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pExportDirectory->AddressOfNames + i), names, pExportDirectory->NumberOfNames, nullptr);
+
+            char name[256] = {};
+            winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + names[0]), &name, sizeof(name), nullptr);
+           /* std::cout << "RAHHHHHHHHHHHHHHHHH MY COCK" << std::hex << pNtHeaders->OptionalHeader.DataDirectory[0].VirtualAddress << std::endl;*/
+            if (name) 
+            std::cout << name << std::endl;
+
+            /*ExportInfo exportInfo{
+                .exportName = exportNameBuffer,
+                .exportAddresses = ExportAddresses{
+                    .exportAddress = baseAddress + RVATable[i],
+                    .absoluteAddress = baseAddress + RVATable[i] - pNtHeaders->OptionalHeader.ImageBase,
+                    .exportAddressOffset = RVATable[i] - pNtHeaders->OptionalHeader.ImageBase
+                }
+            };*/
+
+            //exports.push_back(exportInfo); // Don't forget to store the exportInfo object in your vector
+        
+        }
+
         return exports;
     }
 
@@ -355,7 +398,7 @@ namespace eggmem {
         delete[] handleInfo;
         return nullptr;
     }
-    DWORD Memory::GetProcId(const char* processName) {
+    DWORD Memory::GetProcId(const std::wstring processName) {
         DWORD procId = 0;
         HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
         if (hSnap != INVALID_HANDLE_VALUE)
@@ -366,20 +409,19 @@ namespace eggmem {
             {
                 do
                 {
-                    // Convert pe32.szExeFile from WCHAR* to char*
-                    int bufferSize = WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, nullptr, 0, nullptr, nullptr);
-                    char* charString = new char[bufferSize];
-                    WideCharToMultiByte(CP_UTF8, 0, pe32.szExeFile, -1, charString, bufferSize, nullptr, nullptr);
+                    
+                    std::wstring currentProcName = pe32.szExeFile;
 
-                    // Compare the converted string with the processName using _stricmp
-                    if (!_stricmp(charString, processName))
+                    std::transform(currentProcName.begin(), currentProcName.end(), currentProcName.begin(), ::towlower);
+                    std::wstring lowerProcessName = processName;
+                    std::transform(lowerProcessName.begin(), lowerProcessName.end(), lowerProcessName.begin(), ::towlower);
+                    /*std::wcout << currentProcName << pe32.th32ProcessID << std::endl;*/
+                    if (currentProcName.compare(lowerProcessName) == 0)
                     {
                         procId = pe32.th32ProcessID;
-                        delete[] charString;
                         break;
                     }
 
-                    delete[] charString;
                 } while (Process32Next(hSnap, &pe32));
             }
         }

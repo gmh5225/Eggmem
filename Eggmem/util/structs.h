@@ -40,7 +40,7 @@ namespace eggmem {
         uintptr_t exportAddressOffset;
     };
     struct ExportInfo {
-        std::string exportName;
+        wchar_t exportName;
         ExportAddresses exportAddresses;
     };
 
@@ -53,6 +53,16 @@ namespace eggmem {
         std::string importName;
         ImportAddresses importAddresses;
     };
+
+	namespace winapistructs {
+    struct _STRING32
+    {
+        USHORT Length;                                                          //0x0
+        USHORT MaximumLength;                                                   //0x2
+        ULONG Buffer;                                                           //0x4
+    };
+
+    
 
     /*namespace AccessRights {
         constexpr DWORD ALL_ACCESS = 0x001F0FFF;
@@ -69,7 +79,6 @@ namespace eggmem {
         constexpr DWORD _SYNCHRONIZE = 0x00100000;
     }*/
 
-	namespace winapistructs {
 
 #ifdef _WIN64
         typedef struct _SYSTEM_HANDLE_TABLE_ENTRY_INFO

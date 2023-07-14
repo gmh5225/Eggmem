@@ -15,15 +15,15 @@ namespace eggmem {
 
         std::variant<std::vector<Module>, Module, bool> GetModule(HANDLE hProcess, std::optional<std::wstring> moduleName);
 
-        DWORD GetProcId(const char* processName);
+        DWORD GetProcId(std::wstring processName);
 
         HANDLE hijackHandle(DWORD OwnerPid, DWORD desiredHandlePid, DWORD accessRights);
 
         static PPEB getPEB(HANDLE hProcess);
 
-        std::variant<std::vector<ExportInfo>, ExportInfo> getExports(uintptr_t baseAddress, std::optional<std::string_view> moduleExportName);
+        //std::variant<std::vector<ExportInfo>, ExportInfo> getExports(uintptr_t baseAddress, std::optional<std::string_view> moduleExportName);
 
-        std::variant<std::vector<ImportInfo>, ImportInfo> getImports(uintptr_t baseAddress, std::string_view moduleImportName);
+        std::variant<std::vector<ExportInfo>, ExportInfo> getExports(HANDLE hProcess, uintptr_t baseAddress, std::optional<const char*> moduleExportName);
 
         template <typename T>
         T read(uintptr_t address, HANDLE hProcess) {
