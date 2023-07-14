@@ -34,14 +34,11 @@ namespace eggmem {
 
     
 
-    struct ExportAddresses {
-        uintptr_t exportAddress;
-        uintptr_t absoluteAddress;
-        uintptr_t exportAddressOffset;
-    };
+    
     struct ExportInfo {
-        wchar_t exportName;
-        ExportAddresses exportAddresses;
+        std::string exportName;
+        uintptr_t exportAddress;
+        uintptr_t exportAddressOffset;
     };
 
     struct ImportAddresses {

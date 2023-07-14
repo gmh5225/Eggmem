@@ -235,86 +235,73 @@ namespace eggmem {
     }*/
 
     std::variant<std::vector<ExportInfo>, ExportInfo> Memory::getExports(HANDLE hProcess, uintptr_t baseAddress, std::optional<const char*> moduleExportName) {
-            
+
         IMAGE_DOS_HEADER dosHeader{};
         if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)baseAddress, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 1");
         }
         IMAGE_DOS_HEADER* pDosHeader = &dosHeader;
-        
+
         IMAGE_NT_HEADERS ntHeaders{};
         if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pDosHeader->e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr))) {
-			g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
-		}
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
+        }
         IMAGE_NT_HEADERS* pNtHeaders = &ntHeaders;
-
-       
 
         IMAGE_DATA_DIRECTORY* pDataDirectory = &pNtHeaders->OptionalHeader.DataDirectory[0];
 
         IMAGE_EXPORT_DIRECTORY exportDirectory{};
         if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pDataDirectory->VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr))) {
-			g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 4");
-		}
+            g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 4");
+        }
         IMAGE_EXPORT_DIRECTORY* pExportDirectory = &exportDirectory;
-        
+
         const ULONG_PTR NameTableAddr = baseAddress + pExportDirectory->AddressOfNames;
         const ULONG_PTR RVATableAddr = baseAddress + pExportDirectory->AddressOfFunctions;
         const ULONG_PTR OrdTableAddr = baseAddress + pExportDirectory->AddressOfNameOrdinals;
 
-        uint32_t* NameTable =new uint32_t[pExportDirectory->NumberOfNames];
-        uint32_t* RVATable = new uint32_t[pExportDirectory->NumberOfFunctions];
-        uint32_t* OrdTable = new uint32_t[pExportDirectory->NumberOfNames];
+        auto NameTable = std::unique_ptr<uint32_t[]>(new uint32_t[pExportDirectory->NumberOfNames]);
+        auto RVATable = std::unique_ptr<uint32_t[]>(new uint32_t[pExportDirectory->NumberOfFunctions]);
+        auto OrdTable = std::unique_ptr<uint32_t[]>(new uint32_t[pExportDirectory->NumberOfNames]);
 
         SIZE_T bytesRead;
 
-        
-        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)NameTableAddr, NameTable, sizeof(unsigned long) * pExportDirectory->NumberOfNames, &bytesRead))) {
-            delete[] NameTable;
-            delete[] RVATable;
-            delete[] OrdTable;
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)NameTableAddr, NameTable.get(), sizeof(unsigned long) * pExportDirectory->NumberOfNames, &bytesRead))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 2");
         }
 
-        
-        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)RVATableAddr, RVATable, sizeof(unsigned long) * pExportDirectory->NumberOfFunctions, &bytesRead))) {
-            delete[] NameTable;
-            delete[] RVATable;
-            delete[] OrdTable;
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)RVATableAddr, RVATable.get(), sizeof(unsigned long) * pExportDirectory->NumberOfFunctions, &bytesRead))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 3");
         }
 
-        
-        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)OrdTableAddr, OrdTable, sizeof(unsigned short) * pExportDirectory->NumberOfNames, &bytesRead))) {
-            delete[] NameTable;
-            delete[] RVATable;
-            delete[] OrdTable;
+        if (!NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)OrdTableAddr, OrdTable.get(), sizeof(unsigned short) * pExportDirectory->NumberOfNames, &bytesRead))) {
             g_pUtil->eggError(__func__, "NtReadVirtualMemory failed 4");
         }
 
         std::vector<ExportInfo> exports;
-        for (int i = 0; i < pExportDirectory->NumberOfNames; i++) {
+        if (moduleExportName.has_value()) {
             
-            uint32_t* names = new uint32_t[pExportDirectory->NumberOfNames];
-            winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pExportDirectory->AddressOfNames + i), names, pExportDirectory->NumberOfNames, nullptr);
+        }
+        else {
 
-            char name[256] = {};
-            winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + names[0]), &name, sizeof(name), nullptr);
-           /* std::cout << "RAHHHHHHHHHHHHHHHHH MY COCK" << std::hex << pNtHeaders->OptionalHeader.DataDirectory[0].VirtualAddress << std::endl;*/
-            if (name) 
-            std::cout << name << std::endl;
+            for (DWORD i = 0; i < pExportDirectory->NumberOfNames; ++i) {
+                
+            auto names = std::make_unique<uint32_t[]>(pExportDirectory->NumberOfNames);
+                winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + pExportDirectory->AddressOfNames + i), names.get(), pExportDirectory->NumberOfNames, nullptr);
 
-            /*ExportInfo exportInfo{
-                .exportName = exportNameBuffer,
-                .exportAddresses = ExportAddresses{
-                    .exportAddress = baseAddress + RVATable[i],
-                    .absoluteAddress = baseAddress + RVATable[i] - pNtHeaders->OptionalHeader.ImageBase,
-                    .exportAddressOffset = RVATable[i] - pNtHeaders->OptionalHeader.ImageBase
+                char name[256] = {};
+                winapi::NtReadVirtualMemory(hProcess, (PVOID)(baseAddress + names[0]), &name, sizeof(name), nullptr);
+
+                if (!std::string(name).empty()) {
+                    /*std::cout << name << std::endl;*/
+                    ExportInfo exportInfo{
+                        .exportName = std::string(name),
+                        .exportAddress = baseAddress + RVATable[i],
+                        .exportAddressOffset = RVATable[i] - pNtHeaders->OptionalHeader.ImageBase
+                    };
+                    exports.emplace_back(exportInfo);
                 }
-            };*/
-
-            //exports.push_back(exportInfo); // Don't forget to store the exportInfo object in your vector
-        
+            }
         }
 
         return exports;

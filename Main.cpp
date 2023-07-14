@@ -43,7 +43,7 @@ int main() {
 		if (std::holds_alternative<std::vector<eggmem::ExportInfo>>(result2)) {
 			auto exports = std::get<std::vector<eggmem::ExportInfo>>(result2);
 			for (int j = 0; j < exports.size(); j++) {
-				std::wcout << "export name: " << exports[j].exportName << "\n";
+				std::cout << "export name: " << exports[j].exportName << " [" << std::hex << exports[j].exportAddress << "]\n";
 		
 			}
 		}
