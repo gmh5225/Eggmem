@@ -18,36 +18,60 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\util\Util.cpp">
+    <ClCompile Include="Eggmem\memorry\util\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\memory\Memory.cpp">
+    <ClCompile Include="Eggmem\memorry\Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\memory\MemoryInternal.cpp">
+    <ClCompile Include="Eggmem\memorry\MemoryInternal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\globals\globals.cpp">
+    <ClCompile Include="Eggmem\memorry\util\structs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\util\structs.cpp">
+    <ClCompile Include="Eggmem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Eggmem\Memory\External\External.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Eggmem\Memory\Internal\Internal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Eggmem\Memory\Util\structs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Eggmem\Memory\Util\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Eggmem\util\structs.h">
+    <ClInclude Include="Eggmem\memorry\util\structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\util\Util.h">
+    <ClInclude Include="Eggmem\memorry\util\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\memory\Memory.h">
+    <ClInclude Include="Eggmem\memorry\Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\globals\globals.h">
+    <ClInclude Include="Eggmem\memorry\MemoryInternal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\memory\MemoryInternal.h">
+    <ClInclude Include="Eggmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Eggmem\Memory\External\External.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Eggmem\Memory\Internal\Internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Eggmem\Memory\Util\structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Eggmem\Memory\Util\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

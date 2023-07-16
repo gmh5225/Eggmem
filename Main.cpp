@@ -1,9 +1,9 @@
-#include "Eggmem/globals/globals.h"
-#include "Eggmem/util/structs.h"
+
 #include <iostream>
+#include "Eggmem.h"
 int main() {
-	
-	DWORD processID = eggmem::g_pMemory->GetProcId(L"Spotify.exe");
+	std::unique_ptr<eggmem::Eggmem> eggmem = std::make_unique<eggmem::Eggmem>();
+	DWORD processID =  eggmem->pMemory->GetProcId(L"Spotify.exe");
 
 	HANDLE hProcess;
 	CLIENT_ID clientID;
@@ -15,7 +15,7 @@ int main() {
 
 	NTSTATUS status = eggmem::winapi::NtOpenProcess(&hProcess, PROCESS_ALL_ACCESS, &objectAttributes, &clientID);
 	if (!NT_SUCCESS(status)) {
-		eggmem::g_pUtil->eggError(__func__, "NtOpenProcess failed");
+		eggmem->pUtil->eggError(__func__, "NtOpenProcess failed");
 		std::cout << status;
 		system("pause");
 		return 0;
@@ -23,7 +23,7 @@ int main() {
 	
 
 	std::vector<eggmem::Module> modules{};
-	auto result = eggmem::g_pMemory->GetModule(hProcess, std::nullopt);  
+	auto result = eggmem->pMemory->GetModule(hProcess);  
 
 	if (std::holds_alternative<std::vector<eggmem::Module>>(result)) {
 		modules = std::get<std::vector<eggmem::Module>>(result);
@@ -39,7 +39,7 @@ int main() {
 		std::cout <<  "size: " <<std::dec << modules[i].size << "\n";
 		std::cout <<  "flags: " <<modules[i].flags << "\n";
 		std::cout <<  "load count: " <<modules[i].loadCount << "\n";
-		auto result2 = eggmem::g_pMemory->getExports(hProcess, modules[i].baseAddress, std::nullopt);
+		auto result2 = eggmem->pMemory->getExports(hProcess, modules[i].baseAddress);
 		if (std::holds_alternative<std::vector<eggmem::ExportInfo>>(result2)) {
 			auto exports = std::get<std::vector<eggmem::ExportInfo>>(result2);
 			for (int j = 0; j < exports.size(); j++) {

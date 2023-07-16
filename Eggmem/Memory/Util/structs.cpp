@@ -1,6 +1,6 @@
 #include "structs.h"
 
-namespace eggmem {
+
 
 namespace winapi {
     using namespace winapidefs;
@@ -25,4 +25,4 @@ namespace winapi {
     
 };
 
-}
+

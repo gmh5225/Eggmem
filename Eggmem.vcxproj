@@ -135,19 +135,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Eggmem\globals\globals.cpp" />
-    <ClCompile Include="Eggmem\util\structs.cpp" />
+    <ClCompile Include="Eggmem.cpp" />
+    <ClCompile Include="Eggmem\memorry\util\structs.cpp" />
+    <ClCompile Include="Eggmem\Memory\External\External.cpp" />
+    <ClCompile Include="Eggmem\Memory\Internal\Internal.cpp" />
+    <ClCompile Include="Eggmem\Memory\Util\structs.cpp" />
+    <ClCompile Include="Eggmem\Memory\Util\Util.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Eggmem\util\Util.cpp" />
-    <ClCompile Include="Eggmem\memory\Memory.cpp" />
-    <ClCompile Include="Eggmem\memory\MemoryInternal.cpp" />
+    <ClCompile Include="Eggmem\memorry\util\Util.cpp" />
+    <ClCompile Include="Eggmem\memorry\Memory.cpp" />
+    <ClCompile Include="Eggmem\memorry\MemoryInternal.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Eggmem\globals\globals.h" />
-    <ClInclude Include="Eggmem\util\structs.h" />
-    <ClInclude Include="Eggmem\util\Util.h" />
-    <ClInclude Include="Eggmem\memory\Memory.h" />
-    <ClInclude Include="Eggmem\memory\MemoryInternal.h" />
+    <ClInclude Include="Eggmem.h" />
+    <ClInclude Include="Eggmem\memorry\util\structs.h" />
+    <ClInclude Include="Eggmem\memorry\util\Util.h" />
+    <ClInclude Include="Eggmem\memorry\Memory.h" />
+    <ClInclude Include="Eggmem\memorry\MemoryInternal.h" />
+    <ClInclude Include="Eggmem\Memory\External\External.h" />
+    <ClInclude Include="Eggmem\Memory\Internal\Internal.h" />
+    <ClInclude Include="Eggmem\Memory\Util\structs.h" />
+    <ClInclude Include="Eggmem\Memory\Util\Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
