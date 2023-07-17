@@ -13,10 +13,6 @@ public:
 	
 	Module getModule(std::wstring moduleName);
 
-	std::vector<ExportInfo> getExports(uintptr_t baseAddress);
-
-	std::vector<ImportInfo> getImports(uintptr_t baseAddress);
-
 	std::vector<Module> getModules();
 
 	DWORD getPID();
@@ -35,6 +31,9 @@ public:
 
 
 private:
+	std::vector<ExportInfo> getExports(uintptr_t baseAddress);
+
+	std::vector<ImportInfo> getImports(uintptr_t baseAddress);
 
 	const std::unique_ptr<Util> util = std::make_unique<Util>();
 

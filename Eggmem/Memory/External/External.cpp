@@ -93,7 +93,7 @@ PPEB External::getPEB() {
 
 IMAGE_DOS_HEADER External::getDOSHeader(uintptr_t moduleBaseAddress) {
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return IMAGE_DOS_HEADER{};
 	}
 	IMAGE_DOS_HEADER dosHeader;
 	EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)moduleBaseAddress, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr)), "Failed to read process memory");
@@ -102,38 +102,57 @@ IMAGE_DOS_HEADER External::getDOSHeader(uintptr_t moduleBaseAddress) {
 
 IMAGE_NT_HEADERS External::getNTHeaders(uintptr_t moduleBaseAddress) {
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return IMAGE_NT_HEADERS{};
 	}
 	IMAGE_NT_HEADERS ntHeaders;
 	EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(moduleBaseAddress + this->getDOSHeader(moduleBaseAddress).e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr)), "Failed to read process memory");
 	return ntHeaders;
 }
 
-IMAGE_DATA_DIRECTORY External::getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index = 0) {
+IMAGE_DATA_DIRECTORY External::getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index) {
 	EGG_ASSERT(index < NTHeaders.OptionalHeader.NumberOfRvaAndSizes, "Index out of range");
 	return NTHeaders.OptionalHeader.DataDirectory[index];
 }
 
 IMAGE_EXPORT_DIRECTORY External::getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory) {
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return IMAGE_EXPORT_DIRECTORY{};
 	}
 	IMAGE_EXPORT_DIRECTORY exportDirectory;
 	EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(moduleBaseAddress + dataDirectory.VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr)), "Failed to read process memory");
+	return exportDirectory;
 }
 
 IMAGE_IMPORT_DESCRIPTOR* External::getImportDescriptor(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory) {
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return new IMAGE_IMPORT_DESCRIPTOR{};
 	}
-	IMAGE_IMPORT_DESCRIPTOR* importDescriptor;
+	IMAGE_IMPORT_DESCRIPTOR* importDescriptor = new IMAGE_IMPORT_DESCRIPTOR;
 	EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)(moduleBaseAddress + dataDirectory.VirtualAddress), importDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR), nullptr)), "Failed to read process memory");
 	return importDescriptor;
 }
 
+IMAGE_SECTION_HEADER External::getSectionHeader(uintptr_t moduleBaseAddress, int index)
+{
+	if (Ensure(this->hProcess != NULL && this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
+		
+		return IMAGE_SECTION_HEADER{};
+	}
+
+	IMAGE_DOS_HEADER dosHeader = this->getDOSHeader(moduleBaseAddress);
+
+	IMAGE_NT_HEADERS peHeader = this->getNTHeaders(moduleBaseAddress);
+
+	IMAGE_SECTION_HEADER sectionHeader;
+	uintptr_t sectionHeaderAddress = moduleBaseAddress + dosHeader.e_lfanew + sizeof(IMAGE_NT_HEADERS) + index * sizeof(IMAGE_SECTION_HEADER);
+	EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(this->hProcess, (PVOID)sectionHeaderAddress, &sectionHeader, sizeof(sectionHeader), nullptr)), "Failed to read process memory.");
+
+	return sectionHeader;
+}
+
 std::vector<ExportInfo> External::getExports(uintptr_t baseAddress) {
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return std::vector<ExportInfo>{};
 	}
 
 	std::vector<ExportInfo> exports;
@@ -182,7 +201,7 @@ std::vector<ExportInfo> External::getExports(uintptr_t baseAddress) {
 std::vector<ImportInfo> External::getImports(uintptr_t baseAddress) {
 
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return std::vector<ImportInfo>{};
 	}
 
 	std::vector<ExportInfo> exports;
@@ -205,8 +224,8 @@ std::vector<ImportInfo> External::getImports(uintptr_t baseAddress) {
 		EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(hProcess, (PVOID)importDescriptor->Name, dllName, sizeof(dllName), nullptr)), "NtReadVirtualMemory failed");
 		info.dllName = std::string(dllName);
 
-		IMAGE_THUNK_DATA64* originalFirstThunk = (IMAGE_THUNK_DATA64*)importDescriptor->OriginalFirstThunk;
-		IMAGE_THUNK_DATA64* firstThunk = (IMAGE_THUNK_DATA64*)importDescriptor->FirstThunk;
+		IMAGE_THUNK_DATA* originalFirstThunk = (IMAGE_THUNK_DATA*)importDescriptor->OriginalFirstThunk;
+		IMAGE_THUNK_DATA* firstThunk = (IMAGE_THUNK_DATA*)importDescriptor->FirstThunk;
 
 		while (originalFirstThunk->u1.AddressOfData != 0) {
 			IndividualImport individualImport;
@@ -231,7 +250,7 @@ std::vector<ImportInfo> External::getImports(uintptr_t baseAddress) {
 Module External::getModule(std::wstring moduleName) {
 
 	if (Ensure(this->hProcess != NULL || this->hProcess != INVALID_HANDLE_VALUE, __func__, "Handle is invalid")) {
-		return;
+		return Module{};
 	}
 
 	Module module;
@@ -251,7 +270,18 @@ Module External::getModule(std::wstring moduleName) {
 		delete[] buffer;
 		IMAGE_DOS_HEADER DOSHeader = this->getDOSHeader((uintptr_t)currentModuleEntry.DllBase);
 		IMAGE_NT_HEADERS NTHeaders = this->getNTHeaders((uintptr_t)currentModuleEntry.DllBase);
+		std::vector<imageSection> sectionList;
+		for (int i = 0; i < NTHeaders.FileHeader.NumberOfSections; i++) {
+			IMAGE_SECTION_HEADER sectionHeader = this->getSectionHeader((uintptr_t)currentModuleEntry.DllBase, i);
 
+			imageSection section;
+			section.name = std::string(reinterpret_cast<const char*>(sectionHeader.Name), strnlen(reinterpret_cast<const char*>(sectionHeader.Name), 8));
+			section.baseAddress = (uintptr_t)currentModuleEntry.DllBase + sectionHeader.VirtualAddress;
+			section.size = sectionHeader.Misc.VirtualSize;
+			section.flags = sectionHeader.Characteristics;
+
+			sectionList.push_back(section);
+		}
 		if (!moduleName.empty()) {
 			std::wstring lowerModuleName(moduleName);
 			std::transform(lowerModuleName.begin(), lowerModuleName.end(), lowerModuleName.begin(), ::towlower);
@@ -271,6 +301,7 @@ Module External::getModule(std::wstring moduleName) {
 					.checkSum = NTHeaders.OptionalHeader.CheckSum,
 					.exportInfo = this->getExports((uintptr_t)currentModuleEntry.DllBase),
 					.importInfo = this->getImports((uintptr_t)currentModuleEntry.DllBase),
+					.sections = sectionList,
 				};
 				return tempModule;
 			}
@@ -281,7 +312,7 @@ Module External::getModule(std::wstring moduleName) {
 
 
 	} while (currentModuleEntry.InMemoryOrderLinks.Flink != moduleList.Flink);
-
+	return Module{};
 }
 
 

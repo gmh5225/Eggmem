@@ -8,7 +8,7 @@ class Util
 
 };
 
-static void eggError(const std::string_view funcName, const std::string_view errorMessage);
+extern void eggError(const std::string_view funcName, const std::string_view errorMessage);
 #define EGG_ASSERT(condition, message) do { if(!(condition)) { eggError(__func__, message); } } while(false)
 
 bool Ensure(bool condition, const std::string_view funcName, const std::string_view message);

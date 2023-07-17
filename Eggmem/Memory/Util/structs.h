@@ -18,21 +18,12 @@
 #include <memory>
 #include <stdexcept>
 
-    struct Module {
-        std::wstring moduleName;
-        uintptr_t baseAddress;
-        uintptr_t entryPoint;
-        size_t size;
-        USHORT loadCount;
-        ULONG flags;
-        uintptr_t sectionPointer;
-        unsigned long long checkSum;
-        std::vector<ExportInfo> exportInfo;
-        std::vector<ImportInfo> importInfo;
-
-    };
-
-    
+    struct imageSection {
+		std::string name;
+		uintptr_t baseAddress;
+		size_t size;
+		ULONG flags;
+	};
 
     
     struct ExportInfo {
@@ -49,6 +40,21 @@
         std::string dllName;
         std::vector<IndividualImport> imports;
     };
+
+    struct Module {
+        std::wstring moduleName;
+        uintptr_t baseAddress;
+        uintptr_t entryPoint;
+        size_t size;
+        USHORT loadCount;
+        ULONG flags;
+        uintptr_t sectionPointer;
+        unsigned long long checkSum;
+        std::vector<ExportInfo> exportInfo;
+        std::vector<ImportInfo> importInfo;
+        std::vector<imageSection> sections;
+    };
+
 
     namespace winapistructs {
         struct _STRING32
