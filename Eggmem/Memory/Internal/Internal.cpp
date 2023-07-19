@@ -182,6 +182,7 @@ std::vector<ExportInfo> Internal::getExports(uintptr_t moduleBaseAddress)
 	std::vector<ExportInfo> exports;
 	
 	auto NTHeaders = getNTHeaders(moduleBaseAddress);
+
 	auto exportDirectory = getExportDirectory(moduleBaseAddress, getDataDirectory(NTHeaders, IMAGE_DIRECTORY_ENTRY_EXPORT));
 	
 	const unsigned long* NameTable = reinterpret_cast<const unsigned long*>(moduleBaseAddress + exportDirectory.AddressOfNames);
