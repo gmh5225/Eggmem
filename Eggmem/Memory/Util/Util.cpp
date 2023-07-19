@@ -56,6 +56,11 @@ OBJECT_ATTRIBUTES Util::InitObjectAttributes(PUNICODE_STRING name, ULONG attribu
 	return object;
 }
 
+bool Util::Contains(const std::wstring& str, const std::wstring& substring)
+{
+	return str.find(substring) != std::wstring::npos;
+}
+
 bool Ensure(bool condition, const std::string_view funcName, const std::string_view message) {
 	if (!condition) {
 		eggError(funcName, message);

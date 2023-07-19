@@ -25,12 +25,29 @@ public:
 
     IMAGE_EXPORT_DIRECTORY getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory);
 
-	IMAGE_IMPORT_DESCRIPTOR* getImportDescriptor(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory);
+	IMAGE_IMPORT_DESCRIPTOR getImportDescriptor(uintptr_t moduleBaseAddress);
 
 	IMAGE_SECTION_HEADER getSectionHeader(uintptr_t moduleBaseAddress, int index);
 
+	HANDLE openHandle(uintptr_t openHandleMethod, ACCESS_MASK handleAccessRights);
+
+	std::wstring getProcName();
+
+	template <typename T>
+	T rpm(uintptr_t baseAddress) {
+		T buffer;
+		EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL)), "Failed to read memory");
+		return buffer;
+		
+	}
+
+	template <typename T>
+	bool wpm(uintptr_t baseAddress, T buffer) {
+		return NT_SUCCESS(winapi::NtWriteVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL));
+	}
 
 private:
+
 	std::vector<ExportInfo> getExports(uintptr_t baseAddress);
 
 	std::vector<ImportInfo> getImports(uintptr_t baseAddress);
@@ -44,7 +61,7 @@ private:
 	bool pidInitialized = false;
 
 	void initPEB();
-	std::unique_ptr<PEB> pPeb;
+	PPEB peb;
 	bool pebInitialized = false;
 
 	void initPBI();
@@ -56,5 +73,7 @@ private:
 	bool modulesInitialized = false;
 
 	HANDLE hProcess;
+	bool hProcessInitialized = false;
+	
 };
 

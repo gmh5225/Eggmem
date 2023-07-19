@@ -33,6 +33,9 @@
     <ClCompile Include="Eggmem\Memory\Util\Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Eggmem\Dumper\Dumper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Eggmem.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Eggmem\Memory\Util\Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Eggmem\Dumper\Dumper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,24 +25,36 @@
 		ULONG flags;
 	};
 
+    enum openHandleMethod {
+        OPEN_PROCESS_HANDLE,
+        HIJACK_PROCESS_HANDLE
+    };
     
     struct ExportInfo {
         std::string exportName;
         uintptr_t exportAddress;
     };
 
-    struct IndividualImport {
-        std::string importName;
-        uintptr_t importAddress;
-    };
-
     struct ImportInfo {
         std::string dllName;
-        std::vector<IndividualImport> imports;
+        std::vector<std::string> importNames;
+        std::vector<uintptr_t> importAddress;
     };
+
+   
+
+    /*typedef struct _EGGPEB_LDR_DATA {
+        ULONG Length;
+        BOOLEAN Initialized;
+        PVOID SsHandle;
+        LIST_ENTRY InLoadOrderModuleList;
+        LIST_ENTRY InMemoryOrderModuleList;
+        LIST_ENTRY InInitializationOrderModuleList;
+    } EGGPEB_LDR_DATA, * EGGPPEB_LDR_DATA;*/
 
     struct Module {
         std::wstring moduleName;
+        HMODULE moduleHandle;
         uintptr_t baseAddress;
         uintptr_t entryPoint;
         size_t size;
