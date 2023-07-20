@@ -4,12 +4,9 @@
 #include <iostream>
 Internal::Internal() {
 	
-	initPID();
-	
-	initPEB();
+
 
 }
-
 
 
 std::wstring Internal::getProcName()
@@ -45,6 +42,7 @@ PPEB Internal::getPEB()
 void Internal::initPID()
 {
 	this->pid = GetCurrentProcessId();
+	this->pidInitialized = true;
 }
 
 DWORD Internal::getPID()
@@ -85,97 +83,101 @@ IMAGE_SECTION_HEADER Internal::getSectionHeader(uintptr_t moduleBaseAddress, int
 	return *(IMAGE_SECTION_HEADER*)(moduleBaseAddress + offsetToSectionTable + (sizeof(IMAGE_SECTION_HEADER) * index));
 }
 
-void Internal::Nop(BYTE* destination, uintptr_t size)
-{
-	DWORD oldProtection;
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
-	memset(destination, 0x90, size);
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
-}
+//void Internal::Nop(BYTE* destination, uintptr_t size)
+//{
+//	DWORD oldProtection;
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
+//	memset(destination, 0x90, size);
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
+//}
+//
+//void Internal::Patch(BYTE* destination, BYTE* source, uintptr_t size)
+//{
+//	DWORD oldProtection;
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
+//	memcpy(destination, source, size);
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
+//}
 
-void Internal::Patch(BYTE* destination, BYTE* source, uintptr_t size)
-{
-	DWORD oldProtection;
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
-	memcpy(destination, source, size);
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&destination), (SIZE_T*)&size, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
-}
-
-bool Internal::Detour32(BYTE* source, BYTE* destination, const uintptr_t length)
-{
-	if (length < 5) return false;
-
-	DWORD oldProtection;
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
-
-	uintptr_t relativeAddress = ((uintptr_t)destination - (uintptr_t)source) - 5;
-
-	*source = 0xE9; 
-	*(uintptr_t*)(source + 1) = relativeAddress;
-
-	Nop(source + 5, length - 5);
-
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
-
-	return true;
-}
-
-BYTE* Internal::TrampHook32(BYTE* source, BYTE* destination, const uintptr_t length)
-{
-	if (length < 5) return nullptr;
-	
-	BYTE* gateway = nullptr;
-	SIZE_T size = length + 5; 
-	EGG_ASSERT(NT_SUCCESS(winapi::NtAllocateVirtualMemory(NtCurrentProcess, (PVOID*)&gateway, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)), "NtAllocateVirtualMemory failed");
-
-	memcpy(gateway, source, length);
-	uintptr_t jumpAddress = ((uintptr_t)source - (uintptr_t)gateway) - 5;
-	*(gateway + length) = 0xE9; 
-	*(uintptr_t*)(gateway + length + 1) = jumpAddress;
-
-	Detour32(source, destination, length);
-
-	return gateway;
-}
-
-bool Internal::Detour64(BYTE* source, BYTE* destination, const uintptr_t length)
-{
-	if (length < 14) return false;
-
-	DWORD oldProtection;
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
-
-	memset(source, 0x90, length);
-	uintptr_t* ptrToDestination = (uintptr_t*)(source + 6);
-	*source = 0xFF;
-	*(source + 1) = 0x25;
-	*(DWORD*)(source + 2) = 0;
-	*ptrToDestination = (uintptr_t)destination;
-
-	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
-
-	return true;
-}
-
-BYTE* Internal::TrampHook64(BYTE* source, BYTE* destination, const uintptr_t length)
-{
-	if (length < 14) return nullptr;
-
-	BYTE* gateway = nullptr;
-	SIZE_T size = length + 14; 
-	EGG_ASSERT(NT_SUCCESS(winapi::NtAllocateVirtualMemory(NtCurrentProcess, (PVOID*)&gateway, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)), "NtAllocateVirtualMemory failed");
-
-	memcpy(gateway, source, length);
-	uintptr_t jumpAddress = (uintptr_t)source + length;
-	*(gateway + length) = 0xFF;
-	*(gateway + length + 1) = 0x25;
-	*(DWORD*)(gateway + length + 2) = 0;
-	*(uintptr_t*)(gateway + length + 6) = jumpAddress;
-
-	Detour64(source, destination, length);
-
-	return gateway;
-}
+//bool Internal::Detour32(BYTE* source, BYTE* destination, const uintptr_t length)
+//{
+//	if (length < 5) return false;
+//
+//	DWORD oldProtection;
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
+//
+//	uintptr_t relativeAddress = ((uintptr_t)destination - (uintptr_t)source) - 5;
+//
+//	*source = 0xE9; 
+//	*(uintptr_t*)(source + 1) = relativeAddress;
+//
+//	Nop(source + 5, length - 5);
+//
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
+//
+//	return true;
+//}
+//
+//BYTE* Internal::Tramp
+// 
+// 
+// 
+// 32(BYTE* source, BYTE* destination, const uintptr_t length)
+//{
+//	if (length < 5) return nullptr;
+//	
+//	BYTE* gateway = nullptr;
+//	SIZE_T size = length + 5; 
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtAllocateVirtualMemory(NtCurrentProcess, (PVOID*)&gateway, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)), "NtAllocateVirtualMemory failed");
+//
+//	memcpy(gateway, source, length);
+//	uintptr_t jumpAddress = ((uintptr_t)source - (uintptr_t)gateway) - 5;
+//	*(gateway + length) = 0xE9; 
+//	*(uintptr_t*)(gateway + length + 1) = jumpAddress;
+//
+//	Detour32(source, destination, length);
+//
+//	return gateway;
+//}
+//
+//bool Internal::Detour64(BYTE* source, BYTE* destination, const uintptr_t length)
+//{
+//	if (length < 14) return false;
+//
+//	DWORD oldProtection;
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, PAGE_EXECUTE_READWRITE, &oldProtection)), "NtProtectVirtualMemory failed");
+//
+//	memset(source, 0x90, length);
+//	uintptr_t* ptrToDestination = (uintptr_t*)(source + 6);
+//	*source = 0xFF;
+//	*(source + 1) = 0x25;
+//	*(DWORD*)(source + 2) = 0;
+//	*ptrToDestination = (uintptr_t)destination;
+//
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtProtectVirtualMemory(NtCurrentProcess, (void**)(&source), (SIZE_T*)&length, oldProtection, &oldProtection)), "NtProtectVirtualMemory failed");
+//
+//	return true;
+//}
+//
+//BYTE* Internal::TrampHook64(BYTE* source, BYTE* destination, const uintptr_t length)
+//{
+//	if (length < 14) return nullptr;
+//
+//	BYTE* gateway = nullptr;
+//	SIZE_T size = length + 14; 
+//	EGG_ASSERT(NT_SUCCESS(winapi::NtAllocateVirtualMemory(NtCurrentProcess, (PVOID*)&gateway, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE)), "NtAllocateVirtualMemory failed");
+//
+//	memcpy(gateway, source, length);
+//	uintptr_t jumpAddress = (uintptr_t)source + length;
+//	*(gateway + length) = 0xFF;
+//	*(gateway + length + 1) = 0x25;
+//	*(DWORD*)(gateway + length + 2) = 0;
+//	*(uintptr_t*)(gateway + length + 6) = jumpAddress;
+//
+//	Detour64(source, destination, length);
+//
+//	return gateway;
+//}
 
 std::vector<ExportInfo> Internal::getExports(uintptr_t moduleBaseAddress)
 {

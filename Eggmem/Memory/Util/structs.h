@@ -29,6 +29,28 @@
         OPEN_PROCESS_HANDLE,
         HIJACK_PROCESS_HANDLE
     };
+
+    enum hookMethods {
+        DETOUR,
+        TRAMPOLINE,
+        IATHOOK,
+        EATHOOK,
+        INLINEHOOK,
+        VTABLEHOOK
+    };
+
+    //struct Hook {
+    //    uintptr_t address;
+    //    hookMethods method;
+    //    bool enabled;
+    //    bool success;
+    //};
+
+ //   struct VTableHook: public Hook {
+	//	void* object;
+	//	int functionIndex;
+	//	void* newFunction;
+	//};
     
     struct ExportInfo {
         std::string exportName;

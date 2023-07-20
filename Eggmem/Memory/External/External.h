@@ -1,79 +1,69 @@
 #pragma once
-#include "../Util/structs.h"
+#include "../Memory.h"
 #include "../Util/Util.h"
-class External
-{
+
+class External : public Memory {
 public:
 
-	External(std::wstring processName);
+    External(std::wstring processName);
 
-	PPEB getPEB();
+    PPEB getPEB() override;
 
-	const PROCESS_BASIC_INFORMATION getPBI();
-	
-	Module getModule(std::wstring moduleName);
+    PROCESS_BASIC_INFORMATION getPBI() override;
 
-	std::vector<Module> getModules();
+    Module getModule(std::wstring moduleName);
 
-	DWORD getPID();
+    std::vector<Module> getModules();
 
-	IMAGE_DOS_HEADER getDOSHeader(uintptr_t moduleBaseAddress);
+    DWORD getPID() override;
 
-	IMAGE_NT_HEADERS getNTHeaders(uintptr_t moduleBaseAddress);
+    IMAGE_DOS_HEADER getDOSHeader(uintptr_t moduleBaseAddress) override;
 
-	IMAGE_DATA_DIRECTORY getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index = 0);
+    IMAGE_NT_HEADERS getNTHeaders(uintptr_t moduleBaseAddress) override;
 
-    IMAGE_EXPORT_DIRECTORY getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory);
+    IMAGE_DATA_DIRECTORY getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index = 0) override;
 
-	IMAGE_IMPORT_DESCRIPTOR getImportDescriptor(uintptr_t moduleBaseAddress);
+    IMAGE_EXPORT_DIRECTORY getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory) override;
 
-	IMAGE_SECTION_HEADER getSectionHeader(uintptr_t moduleBaseAddress, int index);
+    IMAGE_IMPORT_DESCRIPTOR getImportDescriptor(uintptr_t moduleBaseAddress) override;
 
-	HANDLE openHandle(uintptr_t openHandleMethod, ACCESS_MASK handleAccessRights);
+    IMAGE_SECTION_HEADER getSectionHeader(uintptr_t moduleBaseAddress, int index) override;
 
-	std::wstring getProcName();
+    HANDLE openHandle(uintptr_t openHandleMethod, ACCESS_MASK handleAccessRights);
 
-	template <typename T>
-	T rpm(uintptr_t baseAddress) {
-		T buffer;
-		EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL)), "Failed to read memory");
-		return buffer;
-		
-	}
+    std::wstring getProcName() override;
 
-	template <typename T>
-	bool wpm(uintptr_t baseAddress, T buffer) {
-		return NT_SUCCESS(winapi::NtWriteVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL));
-	}
+    template <typename T>
+    T rpm(uintptr_t baseAddress) {
+        T buffer;
+        EGG_ASSERT(NT_SUCCESS(winapi::NtReadVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL)), "Failed to read memory");
+        return buffer;
+
+    }
+
+    template <typename T>
+    bool wpm(uintptr_t baseAddress, T buffer) {
+        return NT_SUCCESS(winapi::NtWriteVirtualMemory(this->hProcess, (PVOID)baseAddress, &buffer, sizeof(T), NULL));
+    }
 
 private:
 
-	std::vector<ExportInfo> getExports(uintptr_t baseAddress);
+    void initPEB() override;
+    void initPBI() override;
+    void initPID() override;
 
-	std::vector<ImportInfo> getImports(uintptr_t baseAddress);
+    std::vector<ExportInfo> getExports(uintptr_t baseAddress);
 
-	const std::unique_ptr<Util> util = std::make_unique<Util>();
+    std::vector<ImportInfo> getImports(uintptr_t baseAddress);
 
-	std::wstring processName;
+    const std::unique_ptr<Util> util = std::make_unique<Util>();
 
-	void initPID();
-	DWORD pid;
-	bool pidInitialized = false;
+    std::wstring processName;
 
-	void initPEB();
-	PPEB peb;
-	bool pebInitialized = false;
+    void initModules();
+    std::vector<Module> modules;
+    bool modulesInitialized = false;
 
-	void initPBI();
-	PROCESS_BASIC_INFORMATION pbi;
-	bool pbiInitialized = false;
-
-	void initModules();
-	std::vector<Module> modules;
-	bool modulesInitialized = false;
-
-	HANDLE hProcess;
-	bool hProcessInitialized = false;
-	
+    HANDLE hProcess;
+    bool hProcessInitialized = false;
 };
-

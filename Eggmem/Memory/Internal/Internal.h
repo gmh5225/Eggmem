@@ -1,61 +1,37 @@
 #pragma once
-#include "../Util/structs.h"
+#include "../Memory.h"
 #include "../Util/Util.h"
 
-class Internal
-{
+class Internal : public Memory {
 public:
-	Internal();
+    Internal();
 
-	std::wstring getProcName();
-
-	PPEB getPEB();
-	PROCESS_BASIC_INFORMATION getPBI();
-	DWORD getPID();
-	IMAGE_DOS_HEADER getDOSHeader(uintptr_t moduleBaseAddress);
-
-	IMAGE_NT_HEADERS getNTHeaders(uintptr_t moduleBaseAddress);
-
-	IMAGE_DATA_DIRECTORY getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index = 0);
-
-	IMAGE_EXPORT_DIRECTORY getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory);
-
-	IMAGE_IMPORT_DESCRIPTOR getImportDescriptor(uintptr_t moduleBaseAddress);
-
-	IMAGE_SECTION_HEADER getSectionHeader(uintptr_t moduleBaseAddress, int index);
-
-	void Nop(BYTE* destination, uintptr_t size);
-	void Patch(BYTE* destination, BYTE* source, uintptr_t size);
-
-	bool Detour32 (BYTE* source, BYTE* destination, const uintptr_t length);
-	bool Detour64 (BYTE* source, BYTE* destination, const uintptr_t length);
-
-	BYTE* TrampHook32 (BYTE* source, BYTE* destination, const uintptr_t length);
-	BYTE* TrampHook64 (BYTE* source, BYTE* destination, const uintptr_t length);
+    PPEB getPEB() override;
+    PROCESS_BASIC_INFORMATION getPBI() override;
+    DWORD getPID() override;
+    IMAGE_DOS_HEADER getDOSHeader(uintptr_t moduleBaseAddress) override;
+    IMAGE_NT_HEADERS getNTHeaders(uintptr_t moduleBaseAddress) override;
+    IMAGE_DATA_DIRECTORY getDataDirectory(IMAGE_NT_HEADERS NTHeaders, int index = 0) override;
+    IMAGE_EXPORT_DIRECTORY getExportDirectory(uintptr_t moduleBaseAddress, IMAGE_DATA_DIRECTORY dataDirectory) override;
+    IMAGE_IMPORT_DESCRIPTOR getImportDescriptor(uintptr_t moduleBaseAddress) override;
+    IMAGE_SECTION_HEADER getSectionHeader(uintptr_t moduleBaseAddress, int index) override;
+    std::wstring getProcName() override;
 
 private:
 
-	std::vector<ExportInfo> getExports(uintptr_t baseAddress);
+    
+    void initPEB() override;
+    void initPBI() override;
+    void initPID() override;
 
-	Module getModule(std::wstring moduleName);
+    std::vector<ExportInfo> getExports(uintptr_t baseAddress);
 
-	std::vector<ImportInfo> getImports(uintptr_t baseAddress);
+    Module getModule(std::wstring moduleName);
 
-	const std::unique_ptr<Util> util = std::make_unique<Util>();
-	
-	std::wstring processName;
+    std::vector<ImportInfo> getImports(uintptr_t baseAddress);
 
-	void initPEB();
-	PPEB peb;
-	bool pebInitialized = false;
+    const std::unique_ptr<Util> util = std::make_unique<Util>();
 
-	void initPBI();
-	PROCESS_BASIC_INFORMATION pbi;
-	bool pbiInitialized = false;
-
-	void initPID();
-	DWORD pid;
-	bool pidInitialized = false;
-
+    std::wstring processName;
 };
 

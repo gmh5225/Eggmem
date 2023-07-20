@@ -70,7 +70,7 @@ void External::initPBI() {
 	}
 }
 
-const PROCESS_BASIC_INFORMATION External::getPBI() {
+PROCESS_BASIC_INFORMATION External::getPBI() {
 	if (!this->pbiInitialized) {
 		this->initPBI();
 	}
