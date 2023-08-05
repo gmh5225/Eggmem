@@ -83,7 +83,7 @@ private:
     DWORD _allocationType;
     DWORD _protection;
 
-    static std::unordered_map<uintptr_t, Allocator*> instances; // static member to track instances
+    static std::unordered_map<uintptr_t, Allocator*> instances; 
 };
 
 std::unordered_map<uintptr_t, Allocator*> Allocator::instances;
