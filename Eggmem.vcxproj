@@ -30,27 +30,27 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>ClangCL</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>ClangCL</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -135,29 +135,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Eggmem\Memory\Hooks\Trampoline\Trampoline.cpp" />
-    <ClCompile Include="Eggmem\Dumper\Dumper.cpp" />
-    <ClCompile Include="Eggmem.cpp" />
-    <ClCompile Include="Eggmem\Memory\HookManager.cpp" />
-    <ClCompile Include="Eggmem\Memory\Memory.cpp" />
-    <ClCompile Include="Eggmem\Memory\External\External.cpp" />
-    <ClCompile Include="Eggmem\Memory\Internal\Internal.cpp" />
-    <ClCompile Include="Eggmem\Memory\Util\structs.cpp" />
-    <ClCompile Include="Eggmem\Memory\Util\Util.cpp" />
-    <ClCompile Include="Eggmem\Memory\Hooks\Hook.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Import\Import.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Module.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Section\Section.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\PE\PE.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Export\Export.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\External\External.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Internal.cpp" />
+    <ClCompile Include="src\Eggmem\Eggmem.cpp" />
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\Trampoline\Trampoline.cpp" />
+    <ClCompile Include="src\Eggmem\HookManager\HookManager.cpp" />
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\Hook.cpp" />
+    <ClCompile Include="src\Eggmem\Util\winapi.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\VEH\VEH.cpp" />
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\VTable\VTable.cpp" />
+    <ClCompile Include="src\Eggmem\Memory\Internal\Thread\Thread.cpp" />
+    <ClCompile Include="src\Eggmem\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Eggmem\Memory\Hooks\Trampoline\Trampoline.h" />
-    <ClInclude Include="Eggmem\Dumper\Dumper.h" />
-    <ClInclude Include="Eggmem.h" />
-    <ClInclude Include="Eggmem\Memory\External\External.h" />
-    <ClInclude Include="Eggmem\Memory\HookManager.h" />
-    <ClInclude Include="Eggmem\Memory\Internal\Internal.h" />
-    <ClInclude Include="Eggmem\Memory\Memory.h" />
-    <ClInclude Include="Eggmem\Memory\Util\structs.h" />
-    <ClInclude Include="Eggmem\Memory\Util\Util.h" />
-    <ClInclude Include="Eggmem\Memory\Hooks\Hook.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Export\Export.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Import\Import.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Module.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Section\Section.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\PE\PE.h" />
+    <ClInclude Include="src\Eggmem\Memory\External\External.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Internal.h" />
+    <ClInclude Include="src\Eggmem\Eggmem.h" />
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\Trampoline\Trampoline.h" />
+    <ClInclude Include="src\Eggmem\HookManager\HookManager.h" />
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\Hook.h" />
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\VEH\VEH.h" />
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\VTable\VTable.h" />
+    <ClInclude Include="src\Eggmem\Memory\Internal\Thread\Thread.h" />
+    <ClInclude Include="src\Eggmem\Util\structs.h" />
+    <ClInclude Include="src\Eggmem\Util\Util.h" />
+    <ClInclude Include="src\Eggmem\Util\winapi.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

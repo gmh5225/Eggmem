@@ -15,69 +15,114 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem.cpp">
+    <ClCompile Include="src\Eggmem\HookManager\HookManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\External\External.cpp">
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\Trampoline\Trampoline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Internal\Internal.cpp">
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\Hook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Util\structs.cpp">
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\VEH\VEH.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Util\Util.cpp">
+    <ClCompile Include="src\Eggmem\HookManager\Hooks\VTable\VTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Dumper\Dumper.cpp">
+    <ClCompile Include="src\Eggmem\Eggmem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Memory.cpp">
+    <ClCompile Include="src\Eggmem\Memory\Internal\Internal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\HookManager.cpp">
+    <ClCompile Include="src\Eggmem\Memory\External\External.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Hooks\Trampoline\Trampoline.cpp">
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Export\Export.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Eggmem\Memory\Hooks\Hook.cpp">
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Import\Import.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Module.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Memory\Internal\PE\PE.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Memory\Internal\Thread\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Util\Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Util\winapi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Section\Section.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Eggmem.h">
+    <ClInclude Include="src\Eggmem\HookManager\HookManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\External\External.h">
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\Trampoline\Trampoline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Internal\Internal.h">
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\Hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Util\structs.h">
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\VEH\VEH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Util\Util.h">
+    <ClInclude Include="src\Eggmem\HookManager\Hooks\VTable\VTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Dumper\Dumper.h">
+    <ClInclude Include="src\Eggmem\Eggmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Memory.h">
+    <ClInclude Include="src\Eggmem\Memory\Internal\Internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\HookManager.h">
+    <ClInclude Include="src\Eggmem\Memory\External\External.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Hooks\Trampoline\Trampoline.h">
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Import\Import.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Eggmem\Memory\Hooks\Hook.h">
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Memory\Internal\PE\PE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Memory\Internal\Thread\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Util\Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Util\winapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Util\structs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Section\Section.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Export\Export.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
