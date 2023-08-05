@@ -1,3 +1,4 @@
+#pragma once
 #include <Windows.h>
 #include "../../../../Util/winapi.h"
 #include "../../../../Util/Util.h"
@@ -86,4 +87,4 @@ private:
     static std::unordered_map<uintptr_t, Allocator*> instances; 
 };
 
-std::unordered_map<uintptr_t, Allocator*> Allocator::instances;
+

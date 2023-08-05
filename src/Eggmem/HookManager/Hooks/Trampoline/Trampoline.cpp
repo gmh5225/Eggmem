@@ -115,7 +115,7 @@ BYTE* Trampoline::install() {
         uintptr_t relativeAddress = ((uintptr_t)hookFunction - (uintptr_t)original) - 5;
 
         *(BYTE*)original = 0xE9;
-        *(uintptr_t*)(original + 1) = relativeAddress;
+        *(uintptr_t*)((uintptr_t)original + 1) = relativeAddress;
 
         /*Nop((BYTE*)original + 5, length - 5);*/
         safeCallSEH("memset", [&] { return memset((BYTE*)original + 5, 0x90, length - 5); });
