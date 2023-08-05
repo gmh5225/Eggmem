@@ -3,32 +3,13 @@
 #include <map>
 class VMTHook : public Hook {
 public:
-    VMTHook(void* instance, uint16_t index, uintptr_t redirectedFunction)
-        : instance(instance),
-        vtableIndex(index),
-        redirectedFunction(redirectedFunction)
-    {
-        originalVTable = *reinterpret_cast<void***>(instance);
-        originalFunction = reinterpret_cast<uintptr_t>(originalVTable[index]);
-    }
+    VMTHook(void* instance, uint16_t index, uintptr_t redirectedFunction);
+    virtual ~VMTHook();
 
-    virtual ~VMTHook() {}
+    BYTE* install() override;
+    bool uninstall() override;
 
-    BYTE* install() override {
-        originalVTable[vtableIndex] = reinterpret_cast<void*>(redirectedFunction);
-        this->_installed = true;
-        return nullptr;
-    }
-
-    bool uninstall() override {
-        originalVTable[vtableIndex] = reinterpret_cast<void*>(originalFunction);
-        this->_installed = false;
-        return true;
-    }
-
-    uintptr_t getOriginalFunction() const override {
-        return originalFunction;
-    }
+    uintptr_t getOriginalFunction() const override;
 
 private:
     void* instance;

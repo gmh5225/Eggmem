@@ -80,14 +80,14 @@ LONG CALLBACK VEHHandler(EXCEPTION_POINTERS* ExceptionInfo) {
 	std::cout << "Exception flags: " << ExceptionInfo->ExceptionRecord->ExceptionFlags << "\n";
 	std::cout << "Exception address: " << ExceptionInfo->ExceptionRecord->ExceptionAddress << "\n";
 	return EXCEPTION_CONTINUE_SEARCH;
-}
+} //prints all the info about the exception
 
 int SEHFilter(unsigned int code, struct _EXCEPTION_POINTERS* ep) {
 	std::cout << "SEH triggered for exception code: " << code << "\n";
 	std::cout << "Exception flags: " << ep->ExceptionRecord->ExceptionFlags << "\n";
 	std::cout << "Exception address: " << ep->ExceptionRecord->ExceptionAddress << "\n";
 	return EXCEPTION_EXECUTE_HANDLER;
-}
+} //prints all the info about the exception
 
 
 

@@ -54,34 +54,69 @@ int SEHFilter(unsigned int code, struct _EXCEPTION_POINTERS* ep);
 //    }
 //}
 
+class ScopedVEH {
+    void* handler;
+public:
+    ScopedVEH(void* h) : handler(h) {}
+    ~ScopedVEH() {
+        if (handler) {
+            RemoveVectoredExceptionHandler(handler);
+        }
+    }
+};
+
 template<typename Func, typename... Args>
 auto safeCallVEH(const char* funcName, Func&& func, Args&&... args) -> std::invoke_result_t<Func, Args...> {
+    static_assert(!std::is_nothrow_invocable_v<Func, Args...>,
+        "safeCallVEH is not intended for noexcept functions");
+
     void* handler = AddVectoredExceptionHandler(1, VEHHandler);
+
+    if (!handler) {
+        throw std::runtime_error("Failed to add VEH handler");
+    }
+
+    ScopedVEH scopedHandler(handler);
 
     try {
         if constexpr (std::is_void_v<std::invoke_result_t<Func, Args...>>) {
-            func(std::forward<Args>(args)...);
-            RemoveVectoredExceptionHandler(handler);
+            std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
         }
         else {
-            auto result = func(std::forward<Args>(args)...);
-            RemoveVectoredExceptionHandler(handler);
-            return result;
+            return std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
         }
     }
     catch (...) {
-        RemoveVectoredExceptionHandler(handler);
         std::cerr << "[VEH] -> exception in function: " << funcName << std::endl;
         throw;
     }
 }
 
 template<typename Func, typename... Args>
-auto safeCallSEH(const char* funcName, Func&& func, Args&&... args) -> decltype(func(std::forward<Args>(args)...)) {
-    __try {
-        return func(std::forward<Args>(args)...);
+auto safeCallSEH(const char* funcName, Func&& func, Args&&... args) -> std::invoke_result_t<Func, Args...> {
+    try {
+        if constexpr (std::is_void_v<std::invoke_result_t<Func, Args...>>) {
+            __try {
+                func(std::forward<Args>(args)...);
+            }
+            __except (SEHFilter(GetExceptionCode(), GetExceptionInformation())) {
+                std::cerr << "[SEH] -> exception in function: " << funcName << std::endl;
+                throw; 
+            }
+        }
+        else {
+            decltype(auto) result = decltype(func(std::forward<Args>(args)...))();
+            __try {
+                result = func(std::forward<Args>(args)...);
+            }
+            __except (SEHFilter(GetExceptionCode(), GetExceptionInformation())) {
+                std::cerr << "[SEH] -> exception in function: " << funcName << std::endl;
+                throw; 
+            }
+            return result;
+        }
     }
-    __except (SEHFilter(GetExceptionCode(), GetExceptionInformation())) {
-        std::cerr << "[SEH] -> exception in function: " << funcName << std::endl;
+    catch (...) {
+        throw;
     }
 }

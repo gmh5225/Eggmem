@@ -34,15 +34,6 @@ public:
 private:
 
 	PE& pe = PE::get();
-	/*std::vector<Import> moduleImports;
-	void initImports();
-	static bool importsInitialized;
-	std::vector<Export> moduleExports;
-	void initExports();
-	static bool exportsInitialized;
-	std::vector<Section> moduleSections;
-	void initSections();
-	static bool sectionsInitialized;*/
 	std::vector<std::shared_ptr<Import>> moduleImports;
 	void initImports();
 	static bool importsInitialized;

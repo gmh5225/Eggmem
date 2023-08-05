@@ -36,25 +36,25 @@
     <ClCompile Include="src\Eggmem\Eggmem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Internal.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Internal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\External\External.cpp">
+    <ClCompile Include="src\Eggmem\base\External\External.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Export\Export.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Module\Export\Export.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Import\Import.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Module\Import\Import.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Module.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Module\Module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\PE\PE.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\PE\PE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Thread\Thread.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Thread\Thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Eggmem\Util\Util.cpp">
@@ -63,10 +63,13 @@
     <ClCompile Include="src\Eggmem\Util\winapi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Module\Section\Section.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Module\Section\Section.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.cpp">
+    <ClCompile Include="src\Eggmem\base\Internal\Memory\Allocator\Allocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Eggmem\base\Internal\Memory\MemoryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,22 +92,22 @@
     <ClInclude Include="src\Eggmem\Eggmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Internal.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\External\External.h">
+    <ClInclude Include="src\Eggmem\base\External\External.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Import\Import.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Module\Import\Import.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Module.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Module\Module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\PE\PE.h">
+    <ClInclude Include="src\Eggmem\base\Internal\PE\PE.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Thread\Thread.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Thread\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Eggmem\Util\Util.h">
@@ -116,13 +119,16 @@
     <ClInclude Include="src\Eggmem\Util\structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Section\Section.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Module\Section\Section.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Module\Export\Export.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Module\Export\Export.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Eggmem\Memory\Internal\Memory\Allocator\Allocator.h">
+    <ClInclude Include="src\Eggmem\base\Internal\Memory\Allocator\Allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Eggmem\base\Internal\Memory\MemoryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

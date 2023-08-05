@@ -8,7 +8,7 @@ PE& PE::get()
 
 std::unique_ptr<PROCESS_BASIC_INFORMATION> PE::PBI() {
 
-	std::unique_ptr<PROCESS_BASIC_INFORMATION> pbi(new PROCESS_BASIC_INFORMATION);
+	std::unique_ptr<PROCESS_BASIC_INFORMATION> pbi = std::make_unique<PROCESS_BASIC_INFORMATION>();
 	EGG_ASSERT(NT_SUCCESS(NtQueryInformationProc(NtCurrentProcess, ProcessBasicInformation, pbi.get(), sizeof(PROCESS_BASIC_INFORMATION), NULL)), "NtQueryInformationProcess failed");
 	return pbi;
 

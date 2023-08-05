@@ -5,10 +5,11 @@
 #include "Module/Export/Export.h"
 #include "Module/Import/Import.h"
 #include "Module/Module.h"
-#include "Memory/Allocator/Allocator.h"
+#include "Memory/MemoryManager.h"
 #include "../../Util/Util.h"
 #include "PE/PE.h"
 #include "../../HookManager/HookManager.h"
+
 
 enum Setup {
 	noSetup,
@@ -38,8 +39,10 @@ public:
     std::shared_ptr<Module> module(const std::string& name);
     HookManager& hooks = HookManager::get();
     PE& pe = PE::get();
-    /*uintptr_t allocate(size_t size, DWORD protection);
-    void deallocate(uintptr_t address);*/
+    MemoryManager& mem = MemoryManager::get();
+    //uintptr_t allocate(size_t size, DWORD protection);
+    //void deallocate(uintptr_t address);
+    
 
 private:
     Internal(int setup);
@@ -49,7 +52,6 @@ private:
  /*   std::unordered_map<uintptr_t, std::unique_ptr<Module>> _modules;*/
     std::unordered_map<uintptr_t, std::shared_ptr<Module>> _modules;
     //std::unordered_map<uintptr_t, std::unique_ptr<Allocator>> _allocations;
-
     void handleLoadDllEvent(const LOAD_DLL_DEBUG_INFO& loadDllInfo);
     void handleUnloadDllEvent(const UNLOAD_DLL_DEBUG_INFO& unloadDllInfo);
     void debugLoop(DWORD processId);

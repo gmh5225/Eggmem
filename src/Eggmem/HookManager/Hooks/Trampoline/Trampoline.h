@@ -3,7 +3,7 @@
 #include <array>
 #include <cstdint>
 #include "../../../Util/Util.h"
-#include "../../../Memory/Internal/Memory/Allocator/Allocator.h"
+#include "../../../base/Internal/Memory/MemoryManager.h"
 
 //class Trampoline : public Hook {
 //public:
@@ -47,4 +47,5 @@ private:
     BYTE* gateway;
     size_t length;
     std::unique_ptr<BYTE[]> originalBytes;
+    MemoryManager& mem = MemoryManager::get();
 };

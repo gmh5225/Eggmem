@@ -19,7 +19,11 @@ Internal::Internal(int setup) {
 std::shared_ptr<Module> Internal::module(uintptr_t address) {
     auto it = _modules.find(address);
     if (it == _modules.end()) {
-        return nullptr; // or throw an exception if preferable
+        return safeCallVEH(__func__, [this, address]() {
+            auto newModule = std::make_shared<Module>(address);
+            _modules[address] = newModule;
+            return newModule;
+            });
     }
     return it->second;
 }
@@ -30,7 +34,13 @@ std::shared_ptr<Module> Internal::module(const std::string& name) {
             return module;
         }
     }
-    return nullptr; // or throw an exception if not found
+
+    return safeCallVEH(__func__, [this, &name]() {
+        auto newModule = std::make_shared<Module>(name);
+        uintptr_t address = newModule->base();
+        _modules[address] = newModule;
+        return newModule;
+        });
 }
 
 //std::unique_ptr<Module>& Internal::module(uintptr_t address) {
@@ -44,29 +54,6 @@ std::shared_ptr<Module> Internal::module(const std::string& name) {
 //    }
 //
 //    throw std::runtime_error("Module not found.");
-//}
-
-//uintptr_t Internal::allocate(size_t size, DWORD protection)
-//{
-//    return safeCallVEH("allocate", [this, size, protection]() {
-//        auto allocator = std::make_unique<Allocator>(size, protection);
-//        if (allocator->address() == 0) {
-//            EGG_ERROR("Failed to allocate memory");
-//        }
-//        uintptr_t address = allocator->address();
-//        _allocations[address] = std::move(allocator);
-//        return address;
-//        });
-//}
-//
-//void Internal::deallocate(uintptr_t address)
-//{
-//    safeCallVEH("deallocate", [this, address]() {
-//        if (_allocations.find(address) == _allocations.end()) {
-//            EGG_ERROR("Attempted to deallocate non-existing memory address");
-//        }
-//        _allocations.erase(address);
-//        });
 //}
 
 

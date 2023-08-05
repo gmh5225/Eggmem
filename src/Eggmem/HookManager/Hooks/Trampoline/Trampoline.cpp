@@ -91,41 +91,35 @@ BYTE* Trampoline::install() {
 
     return safeCallSEH(__func__, [this] {
         gateway = (BYTE*)(safeCallVEH("FindSuitableMemory", [this] { return FindSuitableMemory(); }));
-        if (gateway == nullptr) throw std::runtime_error("Could not find suitable memory.");
-
-        SIZE_T size = length + 5;
-        /*EGG_ASSERT(NT_SUCCESS(safeCallVEH("NtAllocateVirtualMemory", [&] {
-            return NtAllocateVirtualMemory(NtCurrentProcess, (void**)&gateway, 0, &size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-            })), "NtAllocateVirtualMemory failed");*/
-
-        gatewayAllocator = safeCallSEH("Allocator Constructor", [&] {
-            return std::make_unique<Allocator>(length + 5, PAGE_EXECUTE_READWRITE);
-            });
+        if (gateway == nullptr) {
+            std::cout << "Failed to find suitable memory, allocating space for gateway instead. \n";
+            gateway = (BYTE*)mem.allocate(length + 5, PAGE_EXECUTE_READWRITE);
+				
+        }
 
         memcpy(gateway, original, length);
-        uintptr_t jumpAddress = ((uintptr_t)original - (uintptr_t)gateway) - 5;
+
+        intptr_t jumpOffset = (intptr_t)original - ((intptr_t)gateway + length + 5);
         *(gateway + length) = 0xE9;
-        *(uintptr_t*)(gateway + length + 1) = jumpAddress;
+        *(intptr_t*)(gateway + length + 1) = jumpOffset;
 
         DWORD oldProtection;
         EGG_ASSERT(NT_SUCCESS(safeCallVEH("NtProtectVirtualMemory", [&] {
             return NtProtectVirtualMemory(NtCurrentProcess, (void**)(&original), (SIZE_T*)&length, PAGE_EXECUTE_READWRITE, &oldProtection);
             })), "NtProtectVirtualMemory failed");
 
-        uintptr_t relativeAddress = ((uintptr_t)hookFunction - (uintptr_t)original) - 5;
-
+        intptr_t hookOffset = (intptr_t)hookFunction - ((intptr_t)original + 5);
         *(BYTE*)original = 0xE9;
-        *(uintptr_t*)((uintptr_t)original + 1) = relativeAddress;
+        *(intptr_t*)((intptr_t)original + 1) = hookOffset;
 
-        /*Nop((BYTE*)original + 5, length - 5);*/
         safeCallSEH("memset", [&] { return memset((BYTE*)original + 5, 0x90, length - 5); });
 
         EGG_ASSERT(NT_SUCCESS(safeCallVEH("NtProtectVirtualMemory", [&] {
             return NtProtectVirtualMemory(NtCurrentProcess, (void**)(&original), (SIZE_T*)&length, oldProtection, &oldProtection);
-        })), "NtProtectVirtualMemory failed");
+            })), "NtProtectVirtualMemory failed");
 
         return gateway;
-    });
+        });
 }
 #else
 BYTE* Trampoline::install() {
